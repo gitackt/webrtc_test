@@ -9,9 +9,7 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     if (recording) {
-      getMediaStream(navigator).then((stream) =>
-        startPeer(pc, stream, document)
-      );
+      getMediaStream(navigator).then((stream) => startPeer(pc, stream));
       pc.addEventListener('icecandidate', (ev) => {
         if (ev.candidate !== null) {
         }

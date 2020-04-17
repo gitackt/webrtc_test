@@ -6,10 +6,19 @@ export const createConnection = () => {
   });
 };
 
-export const startPeer = async (
+export const setRemoteSdp = async (
   pc: RTCPeerConnection,
-  stream: MediaStream,
-  document: Document
+  offer: RTCSessionDescriptionInit
+) => {
+  // need receiving sdp
+  await pc.setRemoteDescription(offer);
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+};
+
+export const setLocalSdp = async (
+  pc: RTCPeerConnection,
+  stream: MediaStream
 ) => {
   pc.ontrack = (ev) => {
     const remoteVideo = getVideoElement(document, 'remoteVideo');
@@ -23,20 +32,18 @@ export const startPeer = async (
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   // need sending sdp
+};
 
-  // need receiving sdp
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
+export const startPeer = async (pc: RTCPeerConnection, stream: MediaStream) => {
+  setLocalSdp(pc, stream);
+  const dummy = await pc.createOffer();
+  setRemoteSdp(pc, dummy);
 };
 
 export const stopPeer = (document: Document) => {
-  const localStream = getVideoStream(document, 'localVideo');
-  if (localStream) {
-    const mediaStream = localStream as MediaStream;
-    const tracks = mediaStream.getTracks();
-    tracks.forEach((track) => {
+  getVideoStream(document, 'localVideo')
+    .getTracks()
+    .forEach((track) => {
       track.stop();
     });
-  }
 };
