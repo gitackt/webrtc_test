@@ -1,62 +1,17 @@
 import React from 'react';
 import './App.css';
-
-const startPeer = async (
-  pc: RTCPeerConnection,
-  stream: MediaStream,
-  document: Document
-) => {
-  pc.ontrack = (ev) => {
-    console.warn(ev.streams[0]);
-    const remoteVideo = document.getElementById(
-      'remoteVideo'
-    ) as HTMLVideoElement;
-    remoteVideo.srcObject = ev.streams[0];
-  };
-  const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
-  localVideo!.srcObject = stream;
-  for (const track of stream.getTracks()) {
-    pc.addTrack(track, stream);
-  }
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-
-  console.warn(pc.localDescription);
-  console.warn(pc.remoteDescription);
-};
-
-const stopPeer = (document: Document) => {
-  const localStream = document.querySelector('video')!.srcObject;
-  if (localStream) {
-    const mediaStream = localStream as MediaStream;
-    const tracks = mediaStream.getTracks();
-    tracks.forEach((track) => {
-      track.stop();
-    });
-  }
-};
+import { createConnection, startPeer, stopPeer } from './lib/peerConnection';
+import { getMediaStream } from './lib/mediaStream';
 
 const App: React.FC = () => {
   const [recording, setRecording] = React.useState(false);
-  const [pc] = React.useState(
-    new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:1.2.3.4' }],
-    })
-  );
+  const [pc] = React.useState(createConnection());
 
   React.useEffect(() => {
     if (recording) {
-      navigator.mediaDevices
-        .getUserMedia({
-          video: { width: window.innerWidth, height: window.innerHeight },
-          audio: true,
-        })
-        .then(async (stream) => {
-          startPeer(pc, stream, document);
-        });
+      getMediaStream(navigator).then((stream) =>
+        startPeer(pc, stream, document)
+      );
       pc.addEventListener('icecandidate', (ev) => {
         if (ev.candidate !== null) {
         }
