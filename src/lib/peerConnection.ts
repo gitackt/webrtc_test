@@ -24,11 +24,10 @@ export const setLocalSdp = async (
     const remoteVideo = getVideoElement(document, 'remoteVideo');
     remoteVideo.srcObject = ev.streams[0];
   };
-  const localVideo = getVideoElement(document, 'localVideo');
-  localVideo.srcObject = stream;
-  for (const track of stream.getTracks()) {
-    pc.addTrack(track, stream);
-  }
+  pc.addEventListener('icecandidate', (ev) => {
+    if (ev.candidate !== null) {
+    }
+  });
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   // need sending sdp
